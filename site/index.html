@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ledgerline — Monthly Budget</title>
+<title>budget.bentone.org — Monthly Budget</title>
 <link rel="stylesheet" href="style.css">
 <script src="app.js" defer></script>
 </head>
 <body>
 <header class="topbar">
-  <div class="brand"><span class="brand-mark" aria-hidden="true">⟟</span><span class="brand-name">Ledgerline</span></div>
+  <div class="brand"><span class="brand-mark" aria-hidden="true">⟟</span><span class="brand-name">budget.bentone.org</span></div>
   <div class="controls">
     <label class="month-label">Month
       <input type="month" id="monthInput" aria-label="Budget month">
@@ -38,7 +38,7 @@
   <section id="treeSection" class="panel" hidden>
     <div class="panel-head">
       <h2>Budget by tag</h2>
-      <span class="legend"><span class="legend-fill" aria-hidden="true"></span> spent&nbsp;&nbsp;<span class="legend-tick" aria-hidden="true"></span> projected month-end</span>
+      <span class="legend"><span class="legend-fill" aria-hidden="true"></span> spent&nbsp;&nbsp;<span class="legend-tick" aria-hidden="true"></span> should-be at this point</span>
     </div>
     <p class="panel-note" id="paceNote"></p>
     <div id="tree" class="tree"></div>
@@ -71,11 +71,10 @@
     <div class="tx-add" id="txAddForm">
       <input type="date" id="addDate" aria-label="Date">
       <input type="text" id="addDesc" placeholder="Description" aria-label="Description">
-      <input type="text" id="addTag" placeholder="Tag (e.g. food.groceries)" list="tagList" aria-label="Tag">
+      <input type="text" id="addTag" placeholder="Tag (e.g. food.groceries)" aria-label="Tag">
       <input type="number" id="addAmount" placeholder="Amount" min="0.01" step="0.01" aria-label="Amount">
       <button type="button" id="btnAddTx" class="primary">Add</button>
     </div>
-    <datalist id="tagList"></datalist>
     <table class="tx-table">
       <thead><tr><th>Date</th><th>Description</th><th>Tag</th><th class="col-amount">Amount</th><th></th></tr></thead>
       <tbody id="txBody"></tbody>

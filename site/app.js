@@ -1,5 +1,5 @@
 'use strict';
-/* Ledgerline — a fully client-side monthly budget.
+/* budget.bentone.org — a fully client-side monthly budget.
    No dependencies. No network use. Compatible with CSP: default-src 'self'
    (no inline scripts/styles/handlers; all styling via classes + CSSOM). */
 
@@ -312,9 +312,20 @@ const state = {
   month: null,           // { y, m }
   statement: null,       // { rows, credits, problems }
   editingTx: -1,
+  editingField: null,
   addingChildOf: null,
   editingLimitOf: null
 };
+
+let savedSnapshot = null;
+function snapshotBudget(){
+  if (!state.budget) return;
+  savedSnapshot = JSON.stringify({ limits: state.budget.limits, transactions: state.budget.transactions });
+}
+function isBudgetDirty(){
+  if (!state.budget || savedSnapshot == null) return false;
+  return JSON.stringify({ limits: state.budget.limits, transactions: state.budget.transactions }) !== savedSnapshot;
+}
 
 function $(id){ return document.getElementById(id); }
 
@@ -355,7 +366,7 @@ function renderTree(){
   const note = $('paceNote');
   if (frac === null) note.textContent = `${MONTHS[state.month.m - 1]} ${state.month.y} hasn't started yet, so no pace projection is shown.`;
   else if (frac === 1) note.textContent = `${MONTHS[state.month.m - 1]} ${state.month.y} is complete; totals are final.`;
-  else note.textContent = `${Math.round(frac * 100)}% of ${MONTHS[state.month.m - 1]} has elapsed. Projections extrapolate current spending to month-end.`;
+  else note.textContent = `${Math.round(frac * 100)}% of ${MONTHS[state.month.m - 1]} has elapsed. The tick marks where you should be at this point.`;
   renderNode(root, container, 0, frac);
 }
 
@@ -364,9 +375,9 @@ function renderNode(node, container, depth, frac){
   row.className = 'node';
 
   const limit = node.explicit != null ? node.explicit : node.implied;
-  const projected = (frac && frac > 0) ? Math.round(node.spent / frac) : null;
+  const projected = (frac && frac > 0 && limit != null) ? Math.round(limit * frac) : null;
   const over = limit != null && node.spent > limit;
-  const overPace = !over && limit != null && projected != null && projected > limit;
+  const overPace = !over && limit != null && projected != null && node.spent > projected;
 
   // Name + leader line
   const nameWrap = document.createElement('div');
@@ -411,7 +422,7 @@ function renderNode(node, container, depth, frac){
       const tick = document.createElement('div');
       tick.className = 'bar-tick ' + (projected > limit ? 'c-over' : 'c-ok');
       tick.style.left = Math.min(100, (projected / limit) * 100) + '%';
-      tick.title = 'Projected month-end: ' + fmtMoney(projected);
+      tick.title = 'Where you should be at this point: ' + fmtMoney(projected);
       barWrap.append(tick);
     }
   } else {
@@ -422,8 +433,8 @@ function renderNode(node, container, depth, frac){
   const status = document.createElement('span');
   if (limit == null){ status.className = 'chip quiet'; status.textContent = 'no limit'; }
   else if (over){ status.className = 'chip bad'; status.textContent = 'over by ' + fmtMoney(node.spent - limit); }
-  else if (overPace){ status.className = 'chip warnc'; status.textContent = 'pace: ' + fmtMoney(projected); }
-  else if (projected != null){ status.className = 'chip good'; status.textContent = 'on track · ' + fmtMoney(projected); }
+  else if (overPace){ status.className = 'chip warnc'; status.textContent = 'ahead of pace by ' + fmtMoney(node.spent - projected); }
+  else if (projected != null){ status.className = 'chip good'; status.textContent = 'on track · ' + fmtMoney(limit - node.spent) + ' left'; }
   else { status.className = 'chip good'; status.textContent = fmtMoney(limit - node.spent) + ' left'; }
 
   // Actions
@@ -530,11 +541,6 @@ function knownTags(){
 function renderTransactions(){
   const body = $('txBody');
   body.textContent = '';
-  const dl = $('tagList');
-  dl.textContent = '';
-  for (const t of knownTags()){
-    const o = document.createElement('option'); o.value = t; dl.append(o);
-  }
   const txs = state.budget.transactions
     .map((tx, i) => ({ tx, i, dt: parseDateFlexible(tx.date) }))
     .sort((a, b) => (b.dt ? dayNumber(b.dt) : -Infinity) - (a.dt ? dayNumber(a.dt) : -Infinity));
@@ -553,6 +559,7 @@ function txRow(tx, i, dt, inMonth){
   if (!inMonth) tr.className = 'dim';
   const tdDate = document.createElement('td');
   tdDate.textContent = tx.date;
+  tdDate.addEventListener('dblclick', () => { state.editingTx = i; state.editingField = 'date'; render(); });
   if (!dt){
     const warn = document.createElement('span');
     warn.className = 'chip bad'; warn.textContent = 'unreadable date';
@@ -560,16 +567,19 @@ function txRow(tx, i, dt, inMonth){
     tdDate.append(' ', warn);
   }
   const tdDesc = document.createElement('td'); tdDesc.textContent = tx.description || '';
+  tdDesc.addEventListener('dblclick', () => { state.editingTx = i; state.editingField = 'desc'; render(); });
   const tdTag = document.createElement('td');
   const tagChip = document.createElement('span');
   tagChip.className = 'chip tag'; tagChip.textContent = tx.tag || 'untagged';
   tdTag.append(tagChip);
+  tdTag.addEventListener('dblclick', () => { state.editingTx = i; state.editingField = 'tag'; render(); });
   const tdAmt = document.createElement('td'); tdAmt.className = 'num';
   tdAmt.textContent = fmtMoney(toCents(tx.amount) || 0);
+  tdAmt.addEventListener('dblclick', () => { state.editingTx = i; state.editingField = 'amount'; render(); });
   const tdAct = document.createElement('td'); tdAct.className = 'row-actions';
   const edit = document.createElement('button');
   edit.type = 'button'; edit.className = 'mini'; edit.textContent = 'edit';
-  edit.addEventListener('click', () => { state.editingTx = i; render(); });
+  edit.addEventListener('click', () => { state.editingTx = i; state.editingField = null; render(); });
   const del = document.createElement('button');
   del.type = 'button'; del.className = 'mini danger'; del.textContent = 'delete';
   del.addEventListener('click', () => { state.budget.transactions.splice(i, 1); state.editingTx = -1; render(); });
@@ -593,7 +603,7 @@ function txEditRow(tx, i){
   tdDesc.append(inDesc);
   const tdTag = document.createElement('td');
   const inTag = document.createElement('input');
-  inTag.type = 'text'; inTag.value = tx.tag || ''; inTag.setAttribute('list', 'tagList');
+  inTag.type = 'text'; inTag.value = tx.tag || '';
   tdTag.append(inTag);
   const tdAmt = document.createElement('td');
   const inAmt = document.createElement('input');
@@ -603,7 +613,7 @@ function txEditRow(tx, i){
   const tdAct = document.createElement('td'); tdAct.className = 'row-actions';
   const save = document.createElement('button');
   save.type = 'button'; save.className = 'mini primary'; save.textContent = 'save';
-  save.addEventListener('click', () => {
+  const apply = () => {
     const d = parseDateFlexible(inDate.value);
     const cents = toCents(inAmt.value);
     const tag = inTag.value.trim().replace(/^\.+|\.+$/g, '');
@@ -613,12 +623,24 @@ function txEditRow(tx, i){
     Object.assign(tx, { date: fmtBudgetDate(d), amount: cents / 100, description: inDesc.value.trim(), tag });
     state.editingTx = -1;
     render();
+  };
+  save.addEventListener('click', apply);
+  for (const inp of [inDate, inDesc, inTag, inAmt])
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === 'Escape') apply(); });
+  tr.addEventListener('focusout', () => {
+    setTimeout(() => { if (!tr.contains(document.activeElement) && state.editingTx === i) apply(); }, 0);
   });
   const cancel = document.createElement('button');
   cancel.type = 'button'; cancel.className = 'mini'; cancel.textContent = 'cancel';
   cancel.addEventListener('click', () => { state.editingTx = -1; render(); });
   tdAct.append(save, cancel);
   tr.append(tdDate, tdDesc, tdTag, tdAmt, tdAct);
+  setTimeout(() => {
+    const field = state.editingField;
+    state.editingField = null;
+    const el = field === 'date' ? inDate : field === 'tag' ? inTag : field === 'amount' ? inAmt : inDesc;
+    el.focus(); el.select();
+  }, 0);
   return tr;
 }
 
@@ -789,6 +811,7 @@ function loadBudgetFile(file){
     state.budget = budget;
     state.fileName = file.name || 'budget.json';
     state.statement = null; state.editingTx = -1; state.addingChildOf = null; state.editingLimitOf = null;
+    snapshotBudget();
     showAlert('ok', `Loaded "${state.fileName}" — ${budget.transactions.length} transactions, ${Object.keys(budget.limits).length} limits.`);
     render();
   };
@@ -827,6 +850,7 @@ function saveBudget(){
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
+  snapshotBudget();
   showAlert('ok', `Saved ${state.fileName} to your downloads.`);
 }
 
@@ -861,6 +885,7 @@ function init(){
     state.fileName = 'budget.json';
     state.statement = null; state.editingTx = -1;
     clearAlerts();
+    snapshotBudget();
     showAlert('ok', 'New budget created. Set your monthly income on the "Total budget" row, then add tags.');
     render();
   };
@@ -870,6 +895,7 @@ function init(){
   for (const id of ['addDate', 'addDesc', 'addTag', 'addAmount'])
     $(id).addEventListener('keydown', e => { if (e.key === 'Enter') addTransactionFromForm(); });
   $('btnCloseRecon').addEventListener('click', () => { state.statement = null; render(); });
+  window.addEventListener('beforeunload', e => { if (isBudgetDirty()){ e.preventDefault(); e.returnValue = ''; } });
   $('addDate').value = isoKey({ y: now.y, m: now.m, d: new Date().getDate() });
   render();
 }

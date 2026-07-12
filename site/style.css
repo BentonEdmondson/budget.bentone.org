@@ -1,4 +1,4 @@
-/* Ledgerline — design tokens
+/* budget.bentone.org — design tokens
    Palette: graph-paper mist, spruce ink, pine-teal action, with
    ok/warn/over hues reserved strictly for budget status. */
 :root{
@@ -90,6 +90,7 @@ button.ghost{ border-color: var(--line); color: var(--muted); }
 button.mini{ font-size: 12px; padding: 2px 8px; border-color: var(--line); color: var(--muted); border-radius: 5px; }
 button.mini:hover{ color: var(--ink); border-color: var(--ink); }
 button.mini.primary{ background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+button.mini.primary:hover{ background: var(--accent-hover); color: var(--accent-ink); }
 button.mini.danger:hover{ color: var(--over); border-color: var(--over); background: var(--over-bg); }
 button:focus-visible, input:focus-visible{
   outline: 2px solid var(--accent);
@@ -191,13 +192,18 @@ input{
 .tx-add{ display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
 .tx-add input[type="text"]{ flex: 1; min-width: 140px; }
 .tx-add input[type="number"]{ width: 110px; }
-.tx-table{ width: 100%; border-collapse: collapse; }
+.tx-table{ width: 100%; border-collapse: collapse; table-layout: fixed; }
 .tx-table th{
   text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em;
   color: var(--muted); font-weight: 600;
   border-bottom: 2px solid var(--ink); padding: 6px 8px;
 }
 .tx-table th.col-amount, .tx-table td.num{ text-align: right; }
+.tx-table th:nth-child(1){ width: 140px; }
+.tx-table th:nth-child(2){ }
+.tx-table th:nth-child(3){ width: 170px; }
+.tx-table th:nth-child(4){ width: 110px; }
+.tx-table th:nth-child(5){ width: 130px; }
 .tx-table td{ padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
 .tx-table tr.dim{ opacity: .5; }
 .tx-table tr.editing td{ background: var(--surface-2); }
@@ -205,6 +211,7 @@ input{
 .row-actions{ white-space: nowrap; text-align: right; }
 .row-actions .mini{ margin-left: 4px; }
 tr:hover .row-actions .mini{ border-color: var(--ink); color: var(--ink); }
+tr:hover .row-actions .mini.primary{ color: var(--accent-ink); background: var(--accent-hover); }
 
 /* ---------- Reconciliation ---------- */
 .recon-grid{ display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
