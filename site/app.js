@@ -901,8 +901,9 @@ function init(){
 }
 
 if (typeof window !== 'undefined' && typeof document !== 'undefined'){
-  if (document.readyState === 'complete') init();
-  else window.addEventListener('load', init);
+  const run = () => requestAnimationFrame(init);
+  if (document.readyState === 'complete') run();
+  else window.addEventListener('load', run);
 }
 if (typeof module === 'object' && module && module.exports){
   module.exports = { parseCSV, parseDateFlexible, extractDescDate, validateLimits,
