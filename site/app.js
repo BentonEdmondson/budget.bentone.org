@@ -366,7 +366,7 @@ function renderTree(){
   const note = $('paceNote');
   if (frac === null) note.textContent = `${MONTHS[state.month.m - 1]} ${state.month.y} hasn't started yet, so no pace projection is shown.`;
   else if (frac === 1) note.textContent = `${MONTHS[state.month.m - 1]} ${state.month.y} is complete; totals are final.`;
-  else note.textContent = `${Math.round(frac * 100)}% of ${MONTHS[state.month.m - 1]} has elapsed. The tick marks where you should be at this point.`;
+  else note.textContent = `${Math.round(frac * 100)}% of ${MONTHS[state.month.m - 1]} has elapsed. The tick marks your target amount at this point.`;
   renderNode(root, container, 0, frac);
 }
 
@@ -415,14 +415,16 @@ function renderNode(node, container, depth, frac){
   barWrap.className = 'bar';
   if (limit != null && limit > 0){
     const fill = document.createElement('div');
-    fill.className = 'bar-fill ' + (over ? 'c-over' : overPace ? 'c-warn' : 'c-ok');
+    const reachedExact = node.spent === limit;
+    fill.className = 'bar-fill ' + (over ? 'c-over' : reachedExact || !overPace ? 'c-ok' : 'c-warn')
+      + (reachedExact ? ' reached' : '');
     fill.style.width = Math.min(100, (node.spent / limit) * 100) + '%';
     barWrap.append(fill);
-    if (projected != null){
+    if (projected != null && !reachedExact){
       const tick = document.createElement('div');
-      tick.className = 'bar-tick ' + (projected > limit ? 'c-over' : 'c-ok');
+      tick.className = 'bar-tick';
       tick.style.left = Math.min(100, (projected / limit) * 100) + '%';
-      tick.title = 'Where you should be at this point: ' + fmtMoney(projected);
+      tick.title = 'Target amount at this point: ' + fmtMoney(projected);
       barWrap.append(tick);
     }
   } else {
@@ -433,8 +435,9 @@ function renderNode(node, container, depth, frac){
   const status = document.createElement('span');
   if (limit == null){ status.className = 'chip quiet'; status.textContent = 'no limit'; }
   else if (over){ status.className = 'chip bad'; status.textContent = 'over by ' + fmtMoney(node.spent - limit); }
+  else if (node.spent === limit){ status.className = 'chip good reached'; status.textContent = 'limit reached'; }
   else if (overPace){ status.className = 'chip warnc'; status.textContent = 'ahead of pace by ' + fmtMoney(node.spent - projected); }
-  else if (projected != null){ status.className = 'chip good'; status.textContent = 'on track · ' + fmtMoney(limit - node.spent) + ' left'; }
+  else if (projected != null){ status.className = 'chip good'; status.textContent = 'on track · ' + fmtMoney(projected - node.spent) + ' until target'; }
   else { status.className = 'chip good'; status.textContent = fmtMoney(limit - node.spent) + ' left'; }
 
   // Actions

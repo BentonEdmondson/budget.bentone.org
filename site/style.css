@@ -117,7 +117,7 @@ input{
 .alert-close{ border: none; background: none; padding: 0 2px; font-size: 16px; line-height: 1; color: inherit; }
 
 /* ---------- Budget tree (ledger rows) ---------- */
-.legend{ font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+.legend{ font-size: 12px; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; line-height: 0; }
 .legend-fill{ width: 18px; height: 8px; background: var(--ok); border-radius: 2px; display: inline-block; }
 .legend-tick{
   width: 8px; height: 8px; display: inline-block;
@@ -130,10 +130,12 @@ input{
    (indentation is applied inside the name cell only). */
 .node{
   display: grid;
-  grid-template-columns: minmax(160px, 1fr) 200px 140px 160px 180px;
+  grid-template-columns: minmax(160px, 1fr) 200px 140px 240px 160px;
   align-items: center;
+  align-content: center;
   gap: 12px;
   padding: 7px 4px;
+  height: 36px;
   border-bottom: 1px solid var(--line);
 }
 .node:last-child{ border-bottom: none; }
@@ -161,7 +163,9 @@ input{
   background: var(--surface);
   border: 2px solid var(--ok);
 }
-.bar-tick.c-over{ border-color: var(--over); }
+.bar-fill.c-ok.reached, .chip.good.reached{
+  box-shadow: 0 0 6px 2px rgba(31, 122, 83, .45);
+}
 
 .chip{
   font-size: 11.5px; padding: 1px 8px; border-radius: 999px;
