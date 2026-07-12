@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ledgerline — Monthly Budget</title>
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><span class="brand-mark" aria-hidden="true">⟟</span><span class="brand-name">Ledgerline</span></div>
+  <div class="controls">
+    <label class="month-label">Month
+      <input type="month" id="monthInput" aria-label="Budget month">
+    </label>
+    <input type="file" id="budgetFile" accept=".json,application/json" hidden>
+    <button type="button" id="btnLoadBudget">Open budget…</button>
+    <input type="file" id="statementFile" accept=".csv,text/csv" hidden>
+    <button type="button" id="btnLoadStatement" disabled>Import statement…</button>
+    <button type="button" id="btnSave" class="primary" disabled>Save budget</button>
+    <button type="button" id="btnNew">New budget</button>
+  </div>
+</header>
+
+<div id="alerts" role="status" aria-live="polite"></div>
+
+<main>
+  <section id="emptyState" class="panel empty-state">
+    <h1>A ledger that never leaves your machine</h1>
+    <p>Open a budget file to see spending by tag, track pace against monthly limits, and reconcile against a bank statement. Every calculation happens in this browser tab — nothing is sent anywhere.</p>
+    <div class="empty-actions">
+      <button type="button" id="btnEmptyOpen" class="primary">Open budget file…</button>
+      <button type="button" id="btnEmptyNew">Start a new budget</button>
+    </div>
+  </section>
+
+  <section id="treeSection" class="panel" hidden>
+    <div class="panel-head">
+      <h2>Budget by tag</h2>
+      <span class="legend"><span class="legend-fill" aria-hidden="true"></span> spent&nbsp;&nbsp;<span class="legend-tick" aria-hidden="true"></span> projected month-end</span>
+    </div>
+    <p class="panel-note" id="paceNote"></p>
+    <div id="tree" class="tree"></div>
+  </section>
+
+  <section id="reconSection" class="panel" hidden>
+    <div class="panel-head">
+      <h2>Reconcile with statement</h2>
+      <button type="button" id="btnCloseRecon" class="ghost">Dismiss</button>
+    </div>
+    <p class="panel-note" id="reconSummary"></p>
+    <div class="recon-grid">
+      <div>
+        <h3>In statement, missing from budget</h3>
+        <div class="recon-actions"><button type="button" id="btnAddAllMissing" hidden>Add all to budget</button></div>
+        <ul id="missingFromBudget" class="recon-list"></ul>
+      </div>
+      <div>
+        <h3>In budget, missing from statement</h3>
+        <ul id="missingFromStatement" class="recon-list"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="txSection" class="panel" hidden>
+    <div class="panel-head">
+      <h2>Transactions</h2>
+      <span class="panel-note" id="txCount"></span>
+    </div>
+    <div class="tx-add" id="txAddForm">
+      <input type="date" id="addDate" aria-label="Date">
+      <input type="text" id="addDesc" placeholder="Description" aria-label="Description">
+      <input type="text" id="addTag" placeholder="Tag (e.g. food.groceries)" list="tagList" aria-label="Tag">
+      <input type="number" id="addAmount" placeholder="Amount" min="0.01" step="0.01" aria-label="Amount">
+      <button type="button" id="btnAddTx" class="primary">Add</button>
+    </div>
+    <datalist id="tagList"></datalist>
+    <table class="tx-table">
+      <thead><tr><th>Date</th><th>Description</th><th>Tag</th><th class="col-amount">Amount</th><th></th></tr></thead>
+      <tbody id="txBody"></tbody>
+    </table>
+  </section>
+</main>
+
+<footer>
+  All data is processed locally in your browser. It is never uploaded, synced, or sent to any server.
+</footer>
+</body>
+</html>
