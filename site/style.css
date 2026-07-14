@@ -87,7 +87,7 @@ button:disabled{ opacity: .45; cursor: not-allowed; }
 button.primary{ background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 button.primary:hover:not(:disabled){ background: var(--accent-hover); }
 button.ghost{ border-color: var(--line); color: var(--muted); }
-button.mini{ font-size: 12px; padding: 2px 8px; border-color: var(--line); color: var(--muted); border-radius: 5px; }
+button.mini{ font-size: 12px; padding: 2px 8px; border-color: var(--line); color: var(--muted); border-radius: 5px; white-space: nowrap; }
 button.mini:hover{ color: var(--ink); border-color: var(--ink); }
 button.mini.primary{ background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 button.mini.primary:hover{ background: var(--accent-hover); color: var(--accent-ink); }
@@ -179,7 +179,7 @@ input{
 .chip.quiet{ background: var(--surface-2); }
 .chip.tag{ font-family: var(--mono); }
 
-.node-actions{ display: flex; gap: 6px; opacity: 0; transition: opacity .12s ease; justify-content: flex-end; }
+.node-actions{ display: flex; gap: 6px; opacity: 0; transition: opacity .12s ease; justify-content: flex-end; align-items: center; }
 .node:hover .node-actions, .node:focus-within .node-actions{ opacity: 1; }
 
 .inline-form{
