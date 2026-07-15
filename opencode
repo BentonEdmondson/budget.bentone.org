@@ -1,0 +1,4 @@
+#!/usr/bin/env fish
+
+podman build . -t opencode:0.1
+podman run -it -v ./site:/root/site:Z -w /root/site opencode:0.1
